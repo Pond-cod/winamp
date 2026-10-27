@@ -201,7 +201,13 @@ app.get(['/stream/:videoId', '/api/stream/:videoId'], async (req, res) => {
   } catch (error) {
     console.error(`[STREAM SETUP ERROR ${videoId}]:`, error.message);
     if (!res.headersSent) {
-      res.status(500).json({ error: 'Failed to stream audio', details: error.message });
+      // Fallback audio/wav to prevent Webamp from freezing at 00:00 when cloud IP is challenged
+      const fallbackWav = Buffer.from("UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA", "base64");
+      res.setHeader('Content-Type', 'audio/wav');
+      res.setHeader('Content-Length', fallbackWav.length);
+      res.setHeader('Accept-Ranges', 'bytes');
+      res.setHeader('X-Stream-Fallback', 'true');
+      res.status(200).send(fallbackWav);
     }
   }
 });

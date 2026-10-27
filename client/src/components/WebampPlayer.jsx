@@ -487,7 +487,7 @@ export const WebampPlayer = forwardRef(({ onTrackChange, onSkinChange, onOpenYou
       webamp.onTrackDidChange((track) => {
         if (track) {
           const urlStr = track.url || '';
-          const match = urlStr.match(/(?:inapp:\/\/|#)([a-zA-Z0-9_-]{11})/);
+          const match = urlStr.match(/(?:inapp:\/\/|#|\/api\/stream\/)([a-zA-Z0-9_-]{11})/);
           if (match && match[1]) {
             inAppAudioPlayer.loadAndPlay(match[1]);
           }
