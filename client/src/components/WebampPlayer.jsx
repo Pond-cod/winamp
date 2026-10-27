@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useImperativeHandle, forwardRef } f
 import Webamp from 'webamp';
 import { SKINS, INITIAL_TRACK } from '../config/skins';
 import { inAppAudioPlayer } from '../services/InAppAudioPlayer';
+import { API_BASE_URL } from '../config/api';
 
 const SILENT_AUDIO = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
 
@@ -668,7 +669,9 @@ export const WebampPlayer = forwardRef(({ onTrackChange, onSkinChange, onOpenYou
         inAppAudioPlayer.loadAndPlay(videoId);
       }
 
-      const audioUrl = videoId ? `${SILENT_AUDIO}#${videoId}` : trackItem.streamUrl;
+      const audioUrl = (trackItem.streamUrl && !trackItem.streamUrl.startsWith('inapp://'))
+        ? trackItem.streamUrl
+        : `${API_BASE_URL}/api/stream/${videoId}`;
       const track = {
         metaData: {
           artist: trackItem.artist || 'Unknown Artist',
@@ -713,7 +716,9 @@ export const WebampPlayer = forwardRef(({ onTrackChange, onSkinChange, onOpenYou
     appendTrack: (trackItem) => {
       if (!webampRef.current) return;
       const videoId = trackItem.videoId || (trackItem.streamUrl && trackItem.streamUrl.replace('inapp://', '').split('#')[0]);
-      const audioUrl = videoId ? `${SILENT_AUDIO}#${videoId}` : trackItem.streamUrl;
+      const audioUrl = (trackItem.streamUrl && !trackItem.streamUrl.startsWith('inapp://'))
+        ? trackItem.streamUrl
+        : `${API_BASE_URL}/api/stream/${videoId}`;
       const track = {
         metaData: {
           artist: trackItem.artist || 'Unknown Artist',

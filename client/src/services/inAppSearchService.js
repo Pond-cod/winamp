@@ -1,4 +1,5 @@
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
+import { API_BASE_URL } from '../config/api';
 
 /**
  * Parses time string (e.g. "3:45" or "1:02:15") into seconds
@@ -87,7 +88,7 @@ export const searchYouTubeInApp = async (query) => {
             duration,
             durationSeconds: parseDurationSeconds(duration),
             thumbnail,
-            streamUrl: `inapp://${v.videoId}`
+            streamUrl: `${API_BASE_URL}/api/stream/${v.videoId}`
           });
         }
       }

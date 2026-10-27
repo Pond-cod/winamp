@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, RefreshCw, X, Play, Plus, Check, Music } from 'lucide-react';
 import { searchYouTubeInApp } from '../services/inAppSearchService';
+import { API_BASE_URL } from '../config/api';
 
 const QUICK_CHIPS = [
   'เพลงฮิต',
@@ -35,9 +36,30 @@ export const YouTubeSearchModal = ({
     setError(null);
 
     try {
-      const data = await searchYouTubeInApp(term.trim());
-      if (data && data.length > 0) {
-        setResults(data);
+      // 1. Try search via Backend API (/api/search) first
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/search?q=${encodeURIComponent(term.trim())}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            setResults(data);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (backendErr) {
+        console.warn('[SEARCH] Backend search fallback to in-app:', backendErr.message);
+      }
+
+      // 2. Fallback to direct In-App search
+      const inAppData = await searchYouTubeInApp(term.trim());
+      if (inAppData && inAppData.length > 0) {
+        // Ensure streamUrl points to backend streaming endpoint
+        const mapped = inAppData.map(item => ({
+          ...item,
+          streamUrl: `${API_BASE_URL}/api/stream/${item.videoId}`
+        }));
+        setResults(mapped);
       } else {
         setError(`No music tracks found for "${term}". Please try another keyword.`);
       }

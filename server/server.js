@@ -250,3 +250,5 @@ app.listen(PORT, () => {
   console.log(`🎵 Search:  http://localhost:${PORT}/api/search?q=synthwave`);
   console.log(`===============================================`);
 });
+
+module.exports = app;
