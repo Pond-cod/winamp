@@ -12,9 +12,9 @@ export const getApiBaseUrl = () => {
       return saved.trim().replace(/\/+$/, '');
     }
 
-    // In native Android APK on local WiFi: default to home PC backend
+    // In native Android APK: default to Vercel Backend
     if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) {
-      return DEFAULT_LOCAL_IP;
+      return DEFAULT_VERCEL_BACKEND;
     }
 
     const hostname = window.location.hostname || '';
