@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { SKINS } from '../config/skins';
 import { EQ_PRESETS } from './WebampPlayer';
+import { getApiBaseUrl, setBackendUrl } from '../config/api';
 
 export const WinampMenuBar = ({
   currentSkin,
@@ -415,6 +416,23 @@ export const WinampMenuBar = ({
                   <span>Repeat</span>
                   <span className="text-[10px] text-slate-600 font-mono">R</span>
                 </div>
+
+                <div className="border-t border-[#808080] border-b border-[#ffffff] my-1" />
+
+                <div
+                  onClick={() => handleAction(() => {
+                    const current = getApiBaseUrl();
+                    const newUrl = prompt('Enter Backend Server API URL (e.g. Render.com or LAN IP):', current);
+                    if (newUrl !== null) {
+                      setBackendUrl(newUrl);
+                      window.location.reload();
+                    }
+                  })}
+                  className="px-3 py-1 hover:bg-[#0a246a] hover:text-white flex items-center justify-between cursor-pointer text-[11px] font-semibold text-blue-900 hover:text-white"
+                >
+                  <span>Backend Server URL...</span>
+                  <span className="text-[10px] font-mono">🌐</span>
+                </div>
               </div>
             )}
           </div>
@@ -579,10 +597,18 @@ export const WinampMenuBar = ({
               <span>{formatTimer(sleepSecondsLeft)}</span>
             </div>
           )}
-          {/* Backend Status Indicator (Termux Node Server) */}
+          {/* Backend Status Indicator (Cloud / Server) */}
           <div
-            title={`Backend Server Status: ${backendStatus.toUpperCase()} (Port 4000)`}
-            className="px-1 py-[1px] bg-[#1a1c23] border border-t-[#808080] border-l-[#808080] border-b-[#ffffff] border-r-[#ffffff] flex items-center space-x-1"
+            onClick={() => {
+              const current = getApiBaseUrl();
+              const newUrl = prompt('Backend Server API URL:', current);
+              if (newUrl !== null) {
+                setBackendUrl(newUrl);
+                window.location.reload();
+              }
+            }}
+            title={`Backend Status: ${backendStatus.toUpperCase()} (${getApiBaseUrl()}) - Click to configure`}
+            className="px-1 py-[1px] bg-[#1a1c23] hover:bg-[#282d3d] border border-t-[#808080] border-l-[#808080] border-b-[#ffffff] border-r-[#ffffff] flex items-center space-x-1 cursor-pointer"
           >
             <span
               className={`inline-block w-1.5 h-1.5 rounded-full ${
@@ -602,7 +628,7 @@ export const WinampMenuBar = ({
                   : 'text-rose-400'
               }`}
             >
-              {backendStatus === 'online' ? 'SRV' : backendStatus === 'checking' ? '...' : 'OFF'}
+              {backendStatus === 'online' ? 'API' : backendStatus === 'checking' ? '...' : 'OFF'}
             </span>
           </div>
 

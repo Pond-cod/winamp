@@ -28,11 +28,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// Watchdog & Heartbeat for Termux / Background auto-shutdown
-// If no heartbeat/activity received for WATCHDOG_TIMEOUT_MS, server shuts down to save battery.
-const WATCHDOG_TIMEOUT_MS = 600000; // 10 minutes of inactivity
+// Watchdog & Heartbeat (Only active if explicitly enabled, disabled on Cloud/Render 24/7)
+const WATCHDOG_TIMEOUT_MS = 600000; // 10 minutes
 let lastActivityTimestamp = Date.now();
-let watchdogEnabled = process.env.ENABLE_WATCHDOG !== 'false';
+let watchdogEnabled = process.env.ENABLE_WATCHDOG === 'true';
 let hasReceivedFirstClientPing = false;
 
 // Update activity timestamp on any request

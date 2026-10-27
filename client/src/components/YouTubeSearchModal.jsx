@@ -143,7 +143,24 @@ export const YouTubeSearchModal = ({
             )}
 
             {!loading && error && (
-              <div className="p-3 text-rose-400 text-xs">{error}</div>
+              <div className="p-4 text-center space-y-2">
+                <div className="text-rose-400 text-xs font-semibold">{error}</div>
+                <div className="text-[10px] text-slate-400">
+                  Target API: <span className="text-amber-300 font-mono">{API_BASE_URL.toString()}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    const newUrl = prompt('Enter Backend Server URL (e.g. Render Cloud URL or Local IP):', API_BASE_URL.toString());
+                    if (newUrl !== null) {
+                      localStorage.setItem('winamp_backend_url', newUrl.trim());
+                      window.location.reload();
+                    }
+                  }}
+                  className="px-3 py-1 bg-[#2a3045] hover:bg-[#3d4663] text-amber-300 border border-t-[#525f87] border-l-[#525f87] border-b-black border-r-black text-[10px] font-bold"
+                >
+                  ⚙️ Change Backend URL
+                </button>
+              </div>
             )}
 
             {!loading && results.length > 0 && (
