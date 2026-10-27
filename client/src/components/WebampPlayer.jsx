@@ -13,7 +13,10 @@ const getPersistedPlaylist = () => {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        const valid = parsed.filter(t => t && t.url && t.metaData);
+        if (valid.length > 0) {
+          return valid;
+        }
       }
     }
   } catch (err) {
@@ -22,27 +25,57 @@ const getPersistedPlaylist = () => {
   return [INITIAL_TRACK];
 };
 
-// Helper: Serialize and save playlist tracks to localStorage
+// Helper: Save track to persistent list immediately
+const saveTrackToPersistentStorage = (track) => {
+  if (!track || !track.url) return;
+  try {
+    const current = getPersistedPlaylist();
+    const filtered = current.filter(t => !(t.url === track.url || (t.metaData?.title === track.metaData?.title && t.metaData?.artist === track.metaData?.artist)));
+    filtered.push(track);
+    localStorage.setItem('winamp_ytm_playlist', JSON.stringify(filtered));
+  } catch (e) {
+    console.warn('Failed to save track:', e);
+  }
+};
+
+// Helper: Serialize and save playlist tracks to localStorage preserving URLs
 const persistPlaylistFromStore = (webamp) => {
   if (!webamp || !webamp.store) return;
   try {
     const state = webamp.store.getState();
     const tracksMap = state.playlist?.tracks;
     const trackOrder = state.playlist?.trackOrder;
+
     if (tracksMap && Array.isArray(trackOrder) && trackOrder.length > 0) {
+      const savedTracks = getPersistedPlaylist();
+      const urlMap = new Map();
+      savedTracks.forEach(st => {
+        if (st && st.url) {
+          const key = `${st.metaData?.title || ''}_${st.metaData?.artist || ''}`.toLowerCase();
+          urlMap.set(key, st.url);
+          urlMap.set(st.url, st.url);
+        }
+      });
+
       const toSave = trackOrder
         .map(id => tracksMap[id])
         .filter(Boolean)
-        .map(t => ({
-          metaData: {
-            artist: t.artist || 'Unknown Artist',
-            title: t.title || t.defaultName || 'Unknown Title',
-            album: t.album || 'YouTube Music',
-            albumArtUrl: t.albumArtUrl || ''
-          },
-          url: t.url,
-          duration: t.duration || 0
-        }));
+        .map(t => {
+          const key = `${t.title || t.defaultName || ''}_${t.artist || ''}`.toLowerCase();
+          const resolvedUrl = t.url || urlMap.get(key) || (t.media && t.media.url) || '';
+          return {
+            metaData: {
+              artist: t.artist || 'Unknown Artist',
+              title: t.title || t.defaultName || 'Unknown Title',
+              album: t.album || 'YouTube Music',
+              albumArtUrl: t.albumArtUrl || ''
+            },
+            url: resolvedUrl,
+            duration: t.duration || 180
+          };
+        })
+        .filter(t => t.url && t.url.length > 0);
+
       if (toSave.length > 0) {
         localStorage.setItem('winamp_ytm_playlist', JSON.stringify(toSave));
       }
@@ -682,6 +715,7 @@ export const WebampPlayer = forwardRef(({ onTrackChange, onSkinChange, onOpenYou
         url: audioUrl,
         duration: trackItem.durationSeconds || 180
       };
+      saveTrackToPersistentStorage(track);
 
       try {
         const currentTracks = webamp.getPlaylistTracks();
@@ -729,6 +763,7 @@ export const WebampPlayer = forwardRef(({ onTrackChange, onSkinChange, onOpenYou
         url: audioUrl,
         duration: trackItem.durationSeconds || 180
       };
+      saveTrackToPersistentStorage(track);
       webampRef.current.appendTracks([track]);
       setTimeout(() => persistPlaylistFromStore(webampRef.current), 80);
     },

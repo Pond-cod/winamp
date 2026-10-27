@@ -1,7 +1,8 @@
 // Base URL configuration for Backend API (Search & Audio Stream)
 import { Capacitor } from '@capacitor/core';
 
-// Production Vercel Backend Domain
+// Home PC IP on port 4000 (Tested & Active)
+export const DEFAULT_LOCAL_IP = 'http://192.168.1.148:4000';
 export const DEFAULT_VERCEL_BACKEND = 'https://winamp-ecru.vercel.app';
 
 export const getApiBaseUrl = () => {
@@ -11,9 +12,9 @@ export const getApiBaseUrl = () => {
       return saved.trim().replace(/\/+$/, '');
     }
 
-    // In native Android APK: connect to Vercel backend
+    // In native Android APK on local WiFi: default to home PC backend
     if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) {
-      return DEFAULT_VERCEL_BACKEND;
+      return DEFAULT_LOCAL_IP;
     }
 
     const hostname = window.location.hostname || '';
@@ -22,10 +23,10 @@ export const getApiBaseUrl = () => {
       return 'http://localhost:4000';
     }
 
-    // Default to Vercel Backend
+    // When deployed on web: default to Vercel Backend
     return DEFAULT_VERCEL_BACKEND;
   }
-  return DEFAULT_VERCEL_BACKEND;
+  return DEFAULT_LOCAL_IP;
 };
 
 // Dynamic string object so ${API_BASE_URL} always returns the latest backend URL

@@ -267,12 +267,28 @@ export const YouTubeSearchModal = ({
               )}
             </div>
 
-            <button
-              onClick={onClose}
-              className="px-4 py-1 bg-[#252a3b] hover:bg-[#343b52] active:bg-[#141721] border border-t-[#4d5678] border-l-[#4d5678] border-b-black border-r-black font-bold text-slate-300 text-[10px]"
-            >
-              CLOSE (ESC)
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => {
+                  const current = localStorage.getItem('winamp_backend_url') || API_BASE_URL.toString() || 'http://192.168.1.148:4000';
+                  const newUrl = prompt('Enter Backend Server URL / IP (e.g. http://192.168.1.148:4000):', current);
+                  if (newUrl !== null) {
+                    localStorage.setItem('winamp_backend_url', newUrl.trim());
+                    window.location.reload();
+                  }
+                }}
+                className="px-2 py-1 bg-[#1e2333] hover:bg-[#2b3248] text-amber-300 border border-t-[#424a66] border-l-[#424a66] border-b-black border-r-black text-[10px] font-mono flex items-center space-x-1"
+                title="Configure Backend Server IP"
+              >
+                <span>⚙️ SERVER</span>
+              </button>
+              <button
+                onClick={onClose}
+                className="px-4 py-1 bg-[#252a3b] hover:bg-[#343b52] active:bg-[#141721] border border-t-[#4d5678] border-l-[#4d5678] border-b-black border-r-black font-bold text-slate-300 text-[10px]"
+              >
+                CLOSE (ESC)
+              </button>
+            </div>
           </div>
         </div>
       </div>
