@@ -30,7 +30,7 @@ app.use((req, res, next) => {
 
 // Watchdog & Heartbeat for Termux / Background auto-shutdown
 // If no heartbeat/activity received for WATCHDOG_TIMEOUT_MS, server shuts down to save battery.
-const WATCHDOG_TIMEOUT_MS = 60000; // 60 seconds of inactivity
+const WATCHDOG_TIMEOUT_MS = 600000; // 10 minutes of inactivity
 let lastActivityTimestamp = Date.now();
 let watchdogEnabled = process.env.ENABLE_WATCHDOG !== 'false';
 let hasReceivedFirstClientPing = false;
@@ -87,7 +87,7 @@ setInterval(() => {
   const inactiveTime = Date.now() - lastActivityTimestamp;
 
   if ((hasReceivedFirstClientPing && inactiveTime > WATCHDOG_TIMEOUT_MS) ||
-      (!hasReceivedFirstClientPing && timeSinceStartup > 120000)) {
+      (!hasReceivedFirstClientPing && timeSinceStartup > 600000)) {
     console.log(`\n⚠️ [AUTO-WATCHDOG] No client activity for ${Math.round(inactiveTime / 1000)}s.`);
     shutdownServer('watchdog_inactivity_timeout');
   }
@@ -241,8 +241,8 @@ app.get('/api/stream/:videoId', async (req, res) => {
   }
 });
 
-// Start Server
-app.listen(PORT, '0.0.0.0', () => {
+// Start Server (Dual-stack: IPv4 & IPv6 localhost)
+app.listen(PORT, () => {
   console.log(`===============================================`);
   console.log(`📻 Winamp YouTube Music Server is running!`);
   console.log(`🚀 Port: ${PORT}`);
