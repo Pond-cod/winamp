@@ -6,8 +6,14 @@ let chooseFormatFn = null;
 
 async function getYtdl() {
   if (!ytdlInstance) {
-    const { Ytdl, chooseFormat } = await import('@distube/ytdl-core');
-    ytdlInstance = new Ytdl();
+    const { Ytdl, chooseFormat, Client } = await import('@distube/ytdl-core');
+    const options = {
+      clients: [Client.Tv, Client.VisionOS, Client.WebEmbedded]
+    };
+    if (process.env.YOUTUBE_COOKIE) {
+      options.cookie = process.env.YOUTUBE_COOKIE;
+    }
+    ytdlInstance = new Ytdl(options);
     chooseFormatFn = chooseFormat;
   }
   return { ytdl: ytdlInstance, chooseFormat: chooseFormatFn };
