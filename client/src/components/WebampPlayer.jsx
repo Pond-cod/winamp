@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState, useImperativeHandle, forwardRef } from 'react';
 import Webamp from 'webamp';
 import { SKINS, INITIAL_TRACK } from '../config/skins';
+import { inAppAudioPlayer } from '../services/InAppAudioPlayer';
+
+const SILENT_AUDIO = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
 
 // Helper: Read persistent playlist from localStorage
 const getPersistedPlaylist = () => {
@@ -417,6 +420,21 @@ export const WebampPlayer = forwardRef(({ onTrackChange, onSkinChange, onOpenYou
           }
         }
 
+        // Sync In-App Audio Player engine (Play / Pause / Stop / Volume)
+        if (state.media) {
+          const status = state.media.status;
+          if (status === 'PLAYING') {
+            inAppAudioPlayer.play();
+          } else if (status === 'PAUSED') {
+            inAppAudioPlayer.pause();
+          } else if (status === 'STOPPED') {
+            inAppAudioPlayer.stop();
+          }
+          if (typeof state.media.volume === 'number') {
+            inAppAudioPlayer.setVolume(state.media.volume);
+          }
+        }
+
         // Debounced persistence of playlist
         clearTimeout(persistDebounce);
         persistDebounce = setTimeout(() => {
@@ -424,7 +442,22 @@ export const WebampPlayer = forwardRef(({ onTrackChange, onSkinChange, onOpenYou
         }, 400);
       });
 
+      // Initialize in-app audio engine
+      inAppAudioPlayer.init();
+      inAppAudioPlayer.onTrackEnded(() => {
+        if (webampRef.current) {
+          webampRef.current.nextTrack();
+        }
+      });
+
       webamp.onTrackDidChange((track) => {
+        if (track) {
+          const urlStr = track.url || '';
+          const match = urlStr.match(/(?:inapp:\/\/|#)([a-zA-Z0-9_-]{11})/);
+          if (match && match[1]) {
+            inAppAudioPlayer.loadAndPlay(match[1]);
+          }
+        }
         if (track && track.metaData) {
           if (onTrackChange) {
             onTrackChange(track);
@@ -629,6 +662,13 @@ export const WebampPlayer = forwardRef(({ onTrackChange, onSkinChange, onOpenYou
     playTrack: (trackItem) => {
       if (!webampRef.current) return;
       const webamp = webampRef.current;
+      const videoId = trackItem.videoId || (trackItem.streamUrl && trackItem.streamUrl.replace('inapp://', '').split('#')[0]);
+
+      if (videoId && videoId.length === 11) {
+        inAppAudioPlayer.loadAndPlay(videoId);
+      }
+
+      const audioUrl = videoId ? `${SILENT_AUDIO}#${videoId}` : trackItem.streamUrl;
       const track = {
         metaData: {
           artist: trackItem.artist || 'Unknown Artist',
@@ -636,8 +676,8 @@ export const WebampPlayer = forwardRef(({ onTrackChange, onSkinChange, onOpenYou
           album: "YouTube Music",
           albumArtUrl: trackItem.thumbnail || trackItem.thumbnailUrl || ''
         },
-        url: trackItem.streamUrl,
-        duration: trackItem.durationSeconds || 0
+        url: audioUrl,
+        duration: trackItem.durationSeconds || 180
       };
 
       try {
@@ -672,6 +712,8 @@ export const WebampPlayer = forwardRef(({ onTrackChange, onSkinChange, onOpenYou
 
     appendTrack: (trackItem) => {
       if (!webampRef.current) return;
+      const videoId = trackItem.videoId || (trackItem.streamUrl && trackItem.streamUrl.replace('inapp://', '').split('#')[0]);
+      const audioUrl = videoId ? `${SILENT_AUDIO}#${videoId}` : trackItem.streamUrl;
       const track = {
         metaData: {
           artist: trackItem.artist || 'Unknown Artist',
@@ -679,15 +721,11 @@ export const WebampPlayer = forwardRef(({ onTrackChange, onSkinChange, onOpenYou
           album: "YouTube Music",
           albumArtUrl: trackItem.thumbnail || trackItem.thumbnailUrl || ''
         },
-        url: trackItem.streamUrl,
-        duration: trackItem.durationSeconds || 0
+        url: audioUrl,
+        duration: trackItem.durationSeconds || 180
       };
       webampRef.current.appendTracks([track]);
-      setTimeout(() => {
-        if (webampRef.current) {
-          persistPlaylistFromStore(webampRef.current);
-        }
-      }, 80);
+      setTimeout(() => persistPlaylistFromStore(webampRef.current), 80);
     },
 
     setSkin: (skin) => {

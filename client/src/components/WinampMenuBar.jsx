@@ -597,38 +597,14 @@ export const WinampMenuBar = ({
               <span>{formatTimer(sleepSecondsLeft)}</span>
             </div>
           )}
-          {/* Backend Status Indicator (Cloud / Server) */}
+          {/* In-App Engine Status Indicator */}
           <div
-            onClick={() => {
-              const current = getApiBaseUrl();
-              const newUrl = prompt('Backend Server API URL:', current);
-              if (newUrl !== null) {
-                setBackendUrl(newUrl);
-                window.location.reload();
-              }
-            }}
-            title={`Backend Status: ${backendStatus.toUpperCase()} (${getApiBaseUrl()}) - Click to configure`}
-            className="px-1 py-[1px] bg-[#1a1c23] hover:bg-[#282d3d] border border-t-[#808080] border-l-[#808080] border-b-[#ffffff] border-r-[#ffffff] flex items-center space-x-1 cursor-pointer"
+            title="In-App YouTube Music Engine: Active & Ready (Self-contained, No External Server Needed)"
+            className="px-1.5 py-[1px] bg-[#1a1c23] border border-t-[#808080] border-l-[#808080] border-b-[#ffffff] border-r-[#ffffff] flex items-center space-x-1"
           >
-            <span
-              className={`inline-block w-1.5 h-1.5 rounded-full ${
-                backendStatus === 'online'
-                  ? 'bg-emerald-400 shadow-[0_0_4px_#34d399]'
-                  : backendStatus === 'checking'
-                  ? 'bg-amber-400 animate-pulse'
-                  : 'bg-rose-500'
-              }`}
-            />
-            <span
-              className={`text-[8px] font-mono font-bold leading-none ${
-                backendStatus === 'online'
-                  ? 'text-emerald-300'
-                  : backendStatus === 'checking'
-                  ? 'text-amber-300'
-                  : 'text-rose-400'
-              }`}
-            >
-              {backendStatus === 'online' ? 'API' : backendStatus === 'checking' ? '...' : 'OFF'}
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_4px_#34d399]" />
+            <span className="text-[8px] font-mono font-bold leading-none text-emerald-300">
+              IN-APP
             </span>
           </div>
 

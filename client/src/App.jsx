@@ -11,7 +11,7 @@ import { pingHeartbeat, requestBackendShutdown, exitWinampApp } from './utils/ba
 
 export default function App() {
   const webampRef = useRef(null);
-  const [backendStatus, setBackendStatus] = useState('checking');
+  const [backendStatus, setBackendStatus] = useState('online');
   const [activeSkinId, setActiveSkinId] = useState(() => {
     return localStorage.getItem('winamp_skin_id') || 'classic';
   });

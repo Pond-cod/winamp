@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, RefreshCw, X, Play, Plus, Check, Music } from 'lucide-react';
-import { API_BASE_URL } from '../config/api';
+import { searchYouTubeInApp } from '../services/inAppSearchService';
 
 const QUICK_CHIPS = [
   'เพลงฮิต',
@@ -35,13 +35,15 @@ export const YouTubeSearchModal = ({
     setError(null);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/search?q=${encodeURIComponent(term.trim())}`);
-      if (!res.ok) throw new Error(`Search failed: HTTP ${res.status}`);
-      const data = await res.json();
-      setResults(data);
+      const data = await searchYouTubeInApp(term.trim());
+      if (data && data.length > 0) {
+        setResults(data);
+      } else {
+        setError(`No music tracks found for "${term}". Please try another keyword.`);
+      }
     } catch (err) {
       console.error(err);
-      setError('Cannot connect to YouTube Music API: ' + API_BASE_URL);
+      setError('Search temporarily unavailable. Please check your internet connection.');
     } finally {
       setLoading(false);
     }

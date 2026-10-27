@@ -50,9 +50,14 @@ export const requestBackendShutdown = async () => {
 };
 
 /**
- * Safely exits the application, stopping backend first
+ * Safely exits the application, stopping audio and backend first
  */
 export const exitWinampApp = async () => {
+  try {
+    const { inAppAudioPlayer } = await import('../services/InAppAudioPlayer');
+    inAppAudioPlayer.stop();
+  } catch (e) {}
+
   await requestBackendShutdown();
   setTimeout(async () => {
     try {

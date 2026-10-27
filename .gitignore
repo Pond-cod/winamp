@@ -8,6 +8,7 @@ dist/
 build/
 *.apk
 !winamp-ytm-v1.0.apk
+!winamp-ytm-standalone.apk
 .gradle/
 
 # Android Local & Cache
