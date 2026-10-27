@@ -28,18 +28,72 @@ app.use((req, res, next) => {
   next();
 });
 
-// 1. Health Check
+// Watchdog & Heartbeat for Termux / Background auto-shutdown
+// If no heartbeat/activity received for WATCHDOG_TIMEOUT_MS, server shuts down to save battery.
+const WATCHDOG_TIMEOUT_MS = 60000; // 60 seconds of inactivity
+let lastActivityTimestamp = Date.now();
+let watchdogEnabled = process.env.ENABLE_WATCHDOG !== 'false';
+let hasReceivedFirstClientPing = false;
+
+// Update activity timestamp on any request
+app.use((req, res, next) => {
+  lastActivityTimestamp = Date.now();
+  next();
+});
+
+// Helper for graceful shutdown
+const shutdownServer = (reason = 'requested') => {
+  console.log(`\n🛑 [SHUTDOWN] Received ${reason} signal. Exiting process to prevent background battery drain...`);
+  setTimeout(() => {
+    process.exit(0);
+  }, 300);
+};
+
+// 1. Health & Heartbeat Check
 app.get('/api/health', (req, res) => {
+  hasReceivedFirstClientPing = true;
+  lastActivityTimestamp = Date.now();
   res.json({
     status: 'ok',
     service: 'winamp-ytm-server',
     port: PORT,
     timestamp: new Date().toISOString(),
-    uptime: Math.floor(process.uptime())
+    uptime: Math.floor(process.uptime()),
+    watchdog: {
+      enabled: watchdogEnabled,
+      inactiveSeconds: Math.floor((Date.now() - lastActivityTimestamp) / 1000)
+    }
   });
 });
 
-// 2. YouTube Search API
+app.all('/api/heartbeat', (req, res) => {
+  hasReceivedFirstClientPing = true;
+  lastActivityTimestamp = Date.now();
+  res.json({ status: 'alive', timestamp: Date.now() });
+});
+
+// 2. Graceful Shutdown Endpoint (handles GET, POST, OPTIONS)
+app.all('/api/shutdown', (req, res) => {
+  console.log('[SHUTDOWN] Client requested server termination.');
+  res.json({ status: 'shutting_down', message: 'Backend is stopping...' });
+  shutdownServer('client_exit');
+});
+
+// Auto-exit watchdog interval
+const STARTUP_TIME = Date.now();
+setInterval(() => {
+  if (!watchdogEnabled) return;
+  const timeSinceStartup = Date.now() - STARTUP_TIME;
+  const inactiveTime = Date.now() - lastActivityTimestamp;
+
+  if ((hasReceivedFirstClientPing && inactiveTime > WATCHDOG_TIMEOUT_MS) ||
+      (!hasReceivedFirstClientPing && timeSinceStartup > 120000)) {
+    console.log(`\n⚠️ [AUTO-WATCHDOG] No client activity for ${Math.round(inactiveTime / 1000)}s.`);
+    shutdownServer('watchdog_inactivity_timeout');
+  }
+}, 10000);
+
+// 3. YouTube Search API
 app.get('/api/search', async (req, res) => {
   try {
     const query = req.query.q;

@@ -34,9 +34,18 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+
+        <service
+            android:name=".CleanupService"
+            android:stopWithTask="false" />
     </application>
 
     <!-- Permissions -->
-
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="com.termux.permission.RUN_COMMAND" />
+
+    <!-- Queries for Termux integration (Required for Android 11+) -->
+    <queries>
+        <package android:name="com.termux" />
+    </queries>
 </manifest>

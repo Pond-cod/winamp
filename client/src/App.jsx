@@ -6,6 +6,8 @@ import { YouTubeSearchModal } from './components/YouTubeSearchModal';
 import { AboutModal } from './components/AboutModal';
 import { SKINS } from './config/skins';
 import { API_BASE_URL } from './config/api';
+import { App as CapApp } from '@capacitor/app';
+import { pingHeartbeat, requestBackendShutdown, exitWinampApp } from './utils/backendLifecycle';
 
 export default function App() {
   const webampRef = useRef(null);
@@ -60,25 +62,61 @@ export default function App() {
     }
   };
 
-  // Backend Health check
+  // Backend Health check & Termux Heartbeat Keep-Alive
   useEffect(() => {
     let isMounted = true;
     const checkHealth = async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/api/health`);
-        if (res.ok && isMounted) setBackendStatus('online');
-        else if (isMounted) setBackendStatus('offline');
+        if (res.ok && isMounted) {
+          setBackendStatus('online');
+          // Send periodic heartbeat to keep Termux watchdog alive
+          pingHeartbeat();
+        } else if (isMounted) {
+          setBackendStatus('offline');
+        }
       } catch {
         if (isMounted) setBackendStatus('offline');
       }
     };
+
     checkHealth();
-    const interval = setInterval(checkHealth, 8000);
+    const interval = setInterval(checkHealth, 6000);
+
+    // Stop backend when page is unloaded / closed
+    const handleUnload = () => {
+      requestBackendShutdown();
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    window.addEventListener('pagehide', handleUnload);
+
+    // Android Hardware Back Button handling via Capacitor
+    let backButtonListener = null;
+    try {
+      backButtonListener = CapApp.addListener('backButton', ({ canGoBack }) => {
+        if (isSearchModalOpen) {
+          setIsSearchModalOpen(false);
+        } else if (isAboutOpen) {
+          setIsAboutOpen(false);
+        } else {
+          // If on main player screen, ask to exit and shut down backend
+          exitWinampApp();
+        }
+      });
+    } catch (e) {
+      console.warn('[BACK BUTTON] Listener setup skipped:', e);
+    }
+
     return () => {
       isMounted = false;
       clearInterval(interval);
+      window.removeEventListener('beforeunload', handleUnload);
+      window.removeEventListener('pagehide', handleUnload);
+      if (backButtonListener?.then) {
+        backButtonListener.then(handle => handle.remove()).catch(() => {});
+      }
     };
-  }, []);
+  }, [isSearchModalOpen, isAboutOpen]);
 
   // Global Winamp Hotkeys (Alt+L / Ctrl+F: Open YouTube Music Search Popup, F11: Fullscreen)
   useEffect(() => {
@@ -183,6 +221,8 @@ export default function App() {
             onToggleFullscreen={toggleFullscreen}
             webampRef={webampRef}
             onAbout={() => setIsAboutOpen(true)}
+            onExit={exitWinampApp}
+            backendStatus={backendStatus}
           />
 
           {/* 3-Window Stack: Main (275x116) + EQ (275x116) + PL (275x(116+bestSegments*29)) */}

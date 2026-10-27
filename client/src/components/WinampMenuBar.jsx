@@ -11,7 +11,9 @@ export const WinampMenuBar = ({
   isFullscreen,
   onToggleFullscreen,
   webampRef,
-  onAbout
+  onAbout,
+  onExit,
+  backendStatus = 'checking'
 }) => {
   const [openMenu, setOpenMenu] = useState(null); // 'file' | 'play' | 'options' | 'skins' | 'view' | 'help' | null
   const [showOptionsSkinsSubmenu, setShowOptionsSkinsSubmenu] = useState(false);
@@ -168,10 +170,10 @@ export const WinampMenuBar = ({
                 </div>
                 <div className="border-t border-[#808080] border-b border-[#ffffff] my-1" />
                 <div
-                  onClick={() => handleAction(() => window.location.reload())}
-                  className="px-3 py-1 hover:bg-[#0a246a] hover:text-white flex items-center justify-between cursor-pointer text-[11px]"
+                  onClick={() => handleAction(onExit)}
+                  className="px-3 py-1 hover:bg-[#a00000] hover:text-white flex items-center justify-between cursor-pointer text-[11px] font-semibold text-rose-800"
                 >
-                  <span>Exit / Reload</span>
+                  <span>Exit &amp; Stop Backend</span>
                   <span className="text-[10px] text-slate-600 font-mono">Alt+F4</span>
                 </div>
               </div>
@@ -577,6 +579,33 @@ export const WinampMenuBar = ({
               <span>{formatTimer(sleepSecondsLeft)}</span>
             </div>
           )}
+          {/* Backend Status Indicator (Termux Node Server) */}
+          <div
+            title={`Backend Server Status: ${backendStatus.toUpperCase()} (Port 4000)`}
+            className="px-1 py-[1px] bg-[#1a1c23] border border-t-[#808080] border-l-[#808080] border-b-[#ffffff] border-r-[#ffffff] flex items-center space-x-1"
+          >
+            <span
+              className={`inline-block w-1.5 h-1.5 rounded-full ${
+                backendStatus === 'online'
+                  ? 'bg-emerald-400 shadow-[0_0_4px_#34d399]'
+                  : backendStatus === 'checking'
+                  ? 'bg-amber-400 animate-pulse'
+                  : 'bg-rose-500'
+              }`}
+            />
+            <span
+              className={`text-[8px] font-mono font-bold leading-none ${
+                backendStatus === 'online'
+                  ? 'text-emerald-300'
+                  : backendStatus === 'checking'
+                  ? 'text-amber-300'
+                  : 'text-rose-400'
+              }`}
+            >
+              {backendStatus === 'online' ? 'SRV' : backendStatus === 'checking' ? '...' : 'OFF'}
+            </span>
+          </div>
+
           <button
             onClick={onToggleFullscreen}
             title={isFullscreen ? "Exit Full Screen (F11)" : "Full Screen (F11)"}
