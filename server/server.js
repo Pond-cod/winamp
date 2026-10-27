@@ -37,6 +37,17 @@ app.use((req, res, next) => {
   next();
 });
 
+// Normalize request URL if rewritten by Vercel serverless functions
+app.use((req, res, next) => {
+  if (req.url === '/server.js' || req.url === '/api/index.js' || req.url.startsWith('/server.js?') || req.url.startsWith('/api/index.js?')) {
+    const rawPath = req.headers['x-matched-path'] || '/';
+    const queryIdx = req.url.indexOf('?');
+    const queryString = queryIdx !== -1 ? req.url.substring(queryIdx) : '';
+    req.url = rawPath + queryString;
+  }
+  next();
+});
+
 // Root Health & Status Endpoint
 app.get(['/', '/api'], (req, res) => {
   res.json({
