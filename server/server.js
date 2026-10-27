@@ -1,11 +1,20 @@
 const express = require('express');
 const cors = require('cors');
 const ytSearch = require('yt-search');
-const { Ytdl, chooseFormat } = require('@distube/ytdl-core');
+let ytdlInstance = null;
+let chooseFormatFn = null;
+
+async function getYtdl() {
+  if (!ytdlInstance) {
+    const { Ytdl, chooseFormat } = await import('@distube/ytdl-core');
+    ytdlInstance = new Ytdl();
+    chooseFormatFn = chooseFormat;
+  }
+  return { ytdl: ytdlInstance, chooseFormat: chooseFormatFn };
+}
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const ytdl = new Ytdl();
 
 // Enable CORS with full headers for Web Audio API & Range Requests
 app.use(cors({
@@ -29,7 +38,7 @@ app.use((req, res, next) => {
 });
 
 // Root Health & Status Endpoint
-app.get('/', (req, res) => {
+app.get(['/', '/api'], (req, res) => {
   res.json({
     status: 'ok',
     service: 'winamp-ytm-server',
@@ -62,7 +71,7 @@ const shutdownServer = (reason = 'requested') => {
 };
 
 // 1. Health & Heartbeat Check
-app.get('/api/health', (req, res) => {
+app.get(['/health', '/api/health'], (req, res) => {
   hasReceivedFirstClientPing = true;
   lastActivityTimestamp = Date.now();
   res.json({
@@ -78,14 +87,14 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-app.all('/api/heartbeat', (req, res) => {
+app.all(['/heartbeat', '/api/heartbeat'], (req, res) => {
   hasReceivedFirstClientPing = true;
   lastActivityTimestamp = Date.now();
   res.json({ status: 'alive', timestamp: Date.now() });
 });
 
 // 2. Graceful Shutdown Endpoint (handles GET, POST, OPTIONS)
-app.all('/api/shutdown', (req, res) => {
+app.all(['/shutdown', '/api/shutdown'], (req, res) => {
   console.log('[SHUTDOWN] Client requested server termination.');
   res.json({ status: 'shutting_down', message: 'Backend is stopping...' });
   shutdownServer('client_exit');
@@ -107,7 +116,7 @@ if (!process.env.VERCEL && watchdogEnabled) {
 }
 
 // 3. YouTube Search API
-app.get('/api/search', async (req, res) => {
+app.get(['/search', '/api/search'], async (req, res) => {
   try {
     const query = req.query.q;
     if (!query || typeof query !== 'string' || !query.trim()) {
@@ -142,7 +151,7 @@ app.get('/api/search', async (req, res) => {
 });
 
 // 3. Audio Stream Proxy
-app.get('/api/stream/:videoId', async (req, res) => {
+app.get(['/stream/:videoId', '/api/stream/:videoId'], async (req, res) => {
   const videoId = req.params.videoId;
   if (!videoId || !/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
     return res.status(400).json({ error: 'Invalid YouTube videoId format' });
@@ -152,6 +161,7 @@ app.get('/api/stream/:videoId', async (req, res) => {
   console.log(`[STREAM REQUEST] videoId: ${videoId}`);
 
   try {
+    const { ytdl, chooseFormat } = await getYtdl();
     const info = await ytdl.getInfo(videoUrl);
 
     // Pick best audio-only format

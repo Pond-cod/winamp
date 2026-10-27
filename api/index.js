@@ -1,10 +1,19 @@
 const express = require('express');
 const cors = require('cors');
 const ytSearch = require('yt-search');
-const { Ytdl, chooseFormat } = require('@distube/ytdl-core');
+let ytdlInstance = null;
+let chooseFormatFn = null;
+
+async function getYtdl() {
+  if (!ytdlInstance) {
+    const { Ytdl, chooseFormat } = await import('@distube/ytdl-core');
+    ytdlInstance = new Ytdl();
+    chooseFormatFn = chooseFormat;
+  }
+  return { ytdl: ytdlInstance, chooseFormat: chooseFormatFn };
+}
 
 const app = express();
-const ytdl = new Ytdl();
 
 // Enable CORS with full headers for Web Audio API & Range Requests
 app.use(cors({
@@ -99,6 +108,7 @@ app.get(['/stream/:videoId', '/api/stream/:videoId'], async (req, res) => {
   console.log(`[STREAM REQUEST] videoId: ${videoId}`);
 
   try {
+    const { ytdl, chooseFormat } = await getYtdl();
     const info = await ytdl.getInfo(videoUrl);
 
     let format = null;
