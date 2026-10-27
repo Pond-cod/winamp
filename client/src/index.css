@@ -1,0 +1,196 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #12151e;
+    color: #c4ccd9;
+    font-family: 'Segoe UI', Tahoma, 'MS Sans Serif', sans-serif;
+  }
+}
+
+/* Classic Winamp 3D Scrollbars */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #000000;
+  border-left: 1px solid #2d3345;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #2b3145;
+  border-top: 1px solid #4a5475;
+  border-left: 1px solid #4a5475;
+  border-bottom: 1px solid #000000;
+  border-right: 1px solid #000000;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #384059;
+}
+
+/* Authentic Windows 98/2000 Retro 3D Menu Scrollbar */
+.retro-scrollbar::-webkit-scrollbar {
+  width: 12px;
+}
+
+.retro-scrollbar::-webkit-scrollbar-track {
+  background: #dfdfdf;
+  border-left: 1px solid #808080;
+}
+
+.retro-scrollbar::-webkit-scrollbar-thumb {
+  background: #d4d0c8;
+  border-top: 1px solid #ffffff;
+  border-left: 1px solid #ffffff;
+  border-bottom: 1px solid #404040;
+  border-right: 1px solid #404040;
+}
+
+.retro-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #c0bdb5;
+}
+
+/* Contained Winamp 3-Window Stack */
+#webamp-mount-point {
+  position: relative !important;
+  width: 275px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+#webamp {
+  position: absolute !important;
+  top: 0px !important;
+  left: 0px !important;
+  width: 275px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Ensure FocusTarget inside windows never has transform offsets */
+#webamp div:has(> #playlist-window) {
+  transform: none !important;
+  top: 0px !important;
+  left: 0px !important;
+}
+
+#webamp #main-window,
+#webamp #equalizer-window,
+#webamp #playlist-window {
+  top: 0px !important;
+  left: 0px !important;
+  margin: 0 !important;
+}
+
+#webamp .window,
+#webamp canvas,
+#webamp img {
+  image-rendering: pixelated !important;
+}
+
+/* Prevent accidental closure of playlist and equalizer windows */
+#playlist-close-button,
+#playlist-window #playlist-close-button,
+#playlist-window-shade #playlist-close-button,
+#equalizer-close-button,
+#equalizer-window #equalizer-close-button {
+  display: none !important;
+}
+
+/* Custom YouTube Music button in playlist ADD popup */
+#playlist-add-menu.has-ytm .bar {
+  height: 72px !important;
+}
+
+#playlist-add-menu ul li.ytm-menu-entry {
+  display: block !important;
+  width: 22px !important;
+  height: 18px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  list-style: none !important;
+  cursor: pointer !important;
+  user-select: none !important;
+}
+
+#playlist-add-menu ul li.ytm-menu-entry .add-ytm {
+  width: 22px !important;
+  height: 18px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #c3c7cb !important;
+  border-top: 1px solid #ffffff !important;
+  border-left: 1px solid #ffffff !important;
+  border-bottom: 1px solid #404040 !important;
+  border-right: 1px solid #404040 !important;
+  box-sizing: border-box !important;
+  cursor: pointer !important;
+  line-height: 8px !important;
+}
+
+#playlist-add-menu ul li.ytm-menu-entry .add-ytm span {
+  display: block !important;
+  font-family: Arial, "MS Sans Serif", monospace, sans-serif !important;
+  font-size: 6.5px !important;
+  font-weight: 900 !important;
+  color: #1a2238 !important;
+  letter-spacing: -0.3px !important;
+  text-align: center !important;
+  line-height: 7px !important;
+  pointer-events: none !important;
+}
+
+#playlist-add-menu ul li.ytm-menu-entry:hover .add-ytm,
+#playlist-add-menu ul li.ytm-menu-entry.hover .add-ytm {
+  background: #000080 !important;
+  border-top: 1px solid #404040 !important;
+  border-left: 1px solid #404040 !important;
+  border-bottom: 1px solid #ffffff !important;
+  border-right: 1px solid #ffffff !important;
+}
+
+#playlist-add-menu ul li.ytm-menu-entry:hover .add-ytm span,
+#playlist-add-menu ul li.ytm-menu-entry.hover .add-ytm span {
+  color: #ffff00 !important;
+}
+
+/* Enable precise touch drag for Equalizer and Sliders on Mobile */
+#equalizer-window,
+#equalizer-window .band,
+#equalizer-window .band div,
+#equalizer-window canvas,
+#equalizer-window .slider-handle,
+#equalizer-preamp,
+#equalizer-preamp div,
+#equalizer-volume,
+#equalizer-balance,
+.playlist-scrollbar,
+.playlist-scrollbar-handle,
+.slider,
+.slider-handle {
+  touch-action: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+/* Ensure smooth pointer cursor and interaction */
+#equalizer-window .band,
+#equalizer-window .slider-handle,
+.playlist-scrollbar-handle {
+  cursor: pointer !important;
+}
+

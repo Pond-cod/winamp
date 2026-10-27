@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production & Build outputs
+dist/
+build/
+*.apk
+.gradle/
+
+# Android Local & Cache
+local.properties
+.cxx/
+client/android/app/build/
+client/android/.gradle/
+
+# Environment & Logs
+.env
+.env.local
+*.log
+npm-debug.log*
+
+# IDE & OS
+.DS_Store
+Thumbs.db
+.vscode/

@@ -1,0 +1,12 @@
+{
+  "appId": "com.winamp.ytm",
+  "appName": "Winamp YTM",
+  "webDir": "dist",
+  "server": {
+    "cleartext": true,
+    "allowNavigation": ["*"]
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

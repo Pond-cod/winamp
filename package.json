@@ -1,0 +1,11 @@
+{
+  "name": "winamp-ytm-app",
+  "version": "1.0.0",
+  "description": "Full-Stack Classic Winamp & YouTube Music Player with 10 Skins and Equalizer",
+  "scripts": {
+    "start:server": "cd server && npm start",
+    "start:client": "cd client && npm run dev",
+    "build:client": "cd client && npm run build",
+    "install:all": "cd server && npm install && cd ../client && npm install"
+  }
+}

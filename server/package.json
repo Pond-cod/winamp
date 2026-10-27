@@ -1,0 +1,16 @@
+{
+  "name": "winamp-ytm-server",
+  "version": "1.0.0",
+  "description": "Backend Search & Audio Streaming Proxy for Winamp YouTube Music",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@distube/ytdl-core": "^5.0.2",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "yt-search": "^2.13.1"
+  }
+}
