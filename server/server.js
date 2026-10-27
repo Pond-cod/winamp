@@ -28,6 +28,19 @@ app.use((req, res, next) => {
   next();
 });
 
+// Root Health & Status Endpoint
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'winamp-ytm-server',
+    endpoints: {
+      health: '/api/health',
+      search: '/api/search?q=query',
+      stream: '/api/stream/:videoId'
+    }
+  });
+});
+
 // Watchdog & Heartbeat (Only active if explicitly enabled, disabled on Cloud/Render 24/7)
 const WATCHDOG_TIMEOUT_MS = 600000; // 10 minutes
 let lastActivityTimestamp = Date.now();
@@ -78,19 +91,20 @@ app.all('/api/shutdown', (req, res) => {
   shutdownServer('client_exit');
 });
 
-// Auto-exit watchdog interval
+// Auto-exit watchdog interval (only active when enabled and outside Vercel)
 const STARTUP_TIME = Date.now();
-setInterval(() => {
-  if (!watchdogEnabled) return;
-  const timeSinceStartup = Date.now() - STARTUP_TIME;
-  const inactiveTime = Date.now() - lastActivityTimestamp;
+if (!process.env.VERCEL && watchdogEnabled) {
+  setInterval(() => {
+    const timeSinceStartup = Date.now() - STARTUP_TIME;
+    const inactiveTime = Date.now() - lastActivityTimestamp;
 
-  if ((hasReceivedFirstClientPing && inactiveTime > WATCHDOG_TIMEOUT_MS) ||
-      (!hasReceivedFirstClientPing && timeSinceStartup > 600000)) {
-    console.log(`\n⚠️ [AUTO-WATCHDOG] No client activity for ${Math.round(inactiveTime / 1000)}s.`);
-    shutdownServer('watchdog_inactivity_timeout');
-  }
-}, 10000);
+    if ((hasReceivedFirstClientPing && inactiveTime > WATCHDOG_TIMEOUT_MS) ||
+        (!hasReceivedFirstClientPing && timeSinceStartup > 600000)) {
+      console.log(`\n⚠️ [AUTO-WATCHDOG] No client activity for ${Math.round(inactiveTime / 1000)}s.`);
+      shutdownServer('watchdog_inactivity_timeout');
+    }
+  }, 10000);
+}
 
 // 3. YouTube Search API
 app.get('/api/search', async (req, res) => {
@@ -240,15 +254,17 @@ app.get('/api/stream/:videoId', async (req, res) => {
   }
 });
 
-// Start Server (Dual-stack: IPv4 & IPv6 localhost)
-app.listen(PORT, () => {
-  console.log(`===============================================`);
-  console.log(`📻 Winamp YouTube Music Server is running!`);
-  console.log(`🚀 Port: ${PORT}`);
-  console.log(`📡 Local:   http://localhost:${PORT}`);
-  console.log(`🔍 Health:  http://localhost:${PORT}/api/health`);
-  console.log(`🎵 Search:  http://localhost:${PORT}/api/search?q=synthwave`);
-  console.log(`===============================================`);
-});
+// Start Server (only when running standalone outside Vercel)
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`===============================================`);
+    console.log(`📻 Winamp YouTube Music Server is running!`);
+    console.log(`🚀 Port: ${PORT}`);
+    console.log(`📡 Local:   http://localhost:${PORT}`);
+    console.log(`🔍 Health:  http://localhost:${PORT}/api/health`);
+    console.log(`🎵 Search:  http://localhost:${PORT}/api/search?q=synthwave`);
+    console.log(`===============================================`);
+  });
+}
 
 module.exports = app;

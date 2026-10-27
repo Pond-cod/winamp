@@ -1,8 +1,8 @@
 // Base URL configuration for Backend API (Search & Audio Stream)
 import { Capacitor } from '@capacitor/core';
 
-// Production Vercel Domain
-export const DEFAULT_VERCEL_BACKEND = 'https://winamp-pond-cod.vercel.app';
+// Production Vercel Backend Domain
+export const DEFAULT_VERCEL_BACKEND = 'https://winamp-ecru.vercel.app';
 
 export const getApiBaseUrl = () => {
   if (typeof window !== 'undefined') {
@@ -11,7 +11,7 @@ export const getApiBaseUrl = () => {
       return saved.trim().replace(/\/+$/, '');
     }
 
-    // In native Android APK: connect to Vercel production backend
+    // In native Android APK: connect to Vercel backend
     if (typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) {
       return DEFAULT_VERCEL_BACKEND;
     }
@@ -22,11 +22,7 @@ export const getApiBaseUrl = () => {
       return 'http://localhost:4000';
     }
 
-    // When deployed on Vercel or web: use the current origin
-    if (window.location.origin && window.location.origin.startsWith('http')) {
-      return window.location.origin;
-    }
-
+    // Default to Vercel Backend
     return DEFAULT_VERCEL_BACKEND;
   }
   return DEFAULT_VERCEL_BACKEND;
