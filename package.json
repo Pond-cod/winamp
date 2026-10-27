@@ -2,12 +2,19 @@
   "name": "winamp-ytm-app",
   "version": "1.0.0",
   "description": "Full-Stack Classic Winamp & YouTube Music Player with 10 Skins and Equalizer",
+  "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
-    "build": "echo 'Ready'",
+    "dev": "node server/server.js",
     "start:server": "cd server && npm start",
     "start:client": "cd client && npm run dev",
     "build:client": "cd client && npm run build",
     "install:all": "cd server && npm install && cd ../client && npm install"
+  },
+  "dependencies": {
+    "@distube/ytdl-core": "^5.0.2",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "yt-search": "^2.13.1"
   }
 }
